@@ -4,10 +4,12 @@ const router = express.Router();
 const staffsController = require('../app/controllers/StaffController');
 
 router.get('/name/:name', staffsController.getStaffByName);
+router.get('/filter', staffsController.filterStaffs);
 router.get('/:id', staffsController.getStaffById);
 router.put('/:id', staffsController.updateStaff);
 router.delete('/:id', staffsController.deleteStaff);
 router.post('/create', staffsController.createNewStaff);
+router.get('/', staffsController.getAllStaffsPagination);
 router.get('/', staffsController.getAllStaffs);
 
 module.exports = router;
