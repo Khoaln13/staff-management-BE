@@ -25,25 +25,47 @@ const AuthController = {
     },
 
     // Generate access token using arrow function
-    generateAccessToken(user) {
+    generateAccessTokenLogin(user) {
         return jwt.sign({
             id: user._id,
-            role_name: user.role_id ? user.role_id.name : user.role_name,
+            role_name: user.role_id.name
         },
             process.env.JWT_ACCESS_KEY,
             { expiresIn: "20s" }
         );
     },
-    generateRefreshToken(user) {
+    generateAccessToken(user) {
+        return jwt.sign({
+            id: user.id,
+            role_name: user.role_name
+        },
+            process.env.JWT_ACCESS_KEY,
+            { expiresIn: "20s" }
+        );
+    },
+    generateRefreshTokenLogin(user) {
+
         return jwt.sign({
             id: user._id,
-            role_name: user.role_id ? user.role_id.name : user.role_name,
+            role_name: user.role_id.name
 
         },
             process.env.JWT_REFRESH_KEY,
             { expiresIn: "365d" }
         );
     },
+    generateRefreshToken(user) {
+
+        return jwt.sign({
+            id: user.id,
+            role_name: user.role_name
+
+        },
+            process.env.JWT_REFRESH_KEY,
+            { expiresIn: "365d" }
+        );
+    },
+
 
     // Log in
     async LoginAccount(req, res, next) {
@@ -58,12 +80,13 @@ const AuthController = {
             }
             const user = await staffController.findStaffByAccountId(account._id);
 
+
             if (!user) {
                 return res.status(404).json({ message: "User not found" });
             }
 
-            const accessToken = AuthController.generateAccessToken(user);
-            const refreshToken = AuthController.generateRefreshToken(user);
+            const accessToken = AuthController.generateAccessTokenLogin(user);
+            const refreshToken = AuthController.generateRefreshTokenLogin(user);
             refreshTokens.push(refreshToken)
 
             res.cookie("refreshToken", refreshToken, {
@@ -83,7 +106,7 @@ const AuthController = {
     requestRefreshToken: async (req, res) => {
         //Take refresh token from user
         const refreshToken = req.cookies.refreshToken;
-        console.log("refreshToken: " + refreshToken);
+
         //Send error if token is not valid
         if (!refreshToken) return res.status(401).json("You're not authenticated");
         if (!refreshTokens.includes(refreshToken)) {
@@ -94,11 +117,12 @@ const AuthController = {
                 console.log("verify: " + err);
             }
             refreshTokens = refreshTokens.filter((token) => token !== refreshToken);
+
             //create new access token, refresh token and send to user
             const newAccessToken = AuthController.generateAccessToken(user);
             const newRefreshToken = AuthController.generateRefreshToken(user);
             refreshTokens.push(newRefreshToken);
-            res.cookie("refreshToken", refreshToken, {
+            res.cookie("refreshToken", newRefreshToken, {
                 httpOnly: true,
                 secure: false,
                 path: "/",
@@ -110,6 +134,8 @@ const AuthController = {
             });
         });
     },
+
+
     LogoutAccount: async (req, res) => {
         res.clearCookie("refreshToken");
         refreshTokens.filter(token => token !== req.cookies.refreshToken)
