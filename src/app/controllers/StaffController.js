@@ -1,6 +1,7 @@
 const Staff = require('../models/Staff');
 const Department = require('../models/Department');
 const Position = require('../models/Position');
+const Role = require('../models/Role');
 class StaffController {
     // [GET] http://localhost:3000/api/v1/staffs/
     async getAllStaffs(req, res, next) {
@@ -15,6 +16,11 @@ class StaffController {
                     path: 'position_id',
                     select: 'title',
                     model: 'Position',
+                })
+                .populate({
+                    path: 'role_id',
+                    select: 'name',
+                    model: 'Role',
                 })
                 .lean();
 
@@ -32,34 +38,42 @@ class StaffController {
             });
         }
     }
+
+    // [GET] http://localhost:3000/api/v1/staffs/
     async getAllStaffsPagination(req, res, next) {
         const page = parseInt(req.query.page) || 1; // Trang hiện tại, mặc định là trang 1 nếu không được cung cấp
         const limit = parseInt(req.query.limit) || 10; // Số lượng phần tử trên mỗi trang, mặc định là 10 nếu không được cung cấp
-    
+
         try {
             const totalStaffs = await Staff.countDocuments(); // Tổng số nhân viên
-    
+
             const totalPages = Math.ceil(totalStaffs / limit); // Tổng số trang
             const skip = (page - 1) * limit; // Số lượng bản ghi bị bỏ qua
-    
+
             const staffs = await Staff.find({})
-            .populate({
-                path: 'department_id',
-                select: 'name',
-                model: 'Department',
-            })
-            .populate({
-                path: 'position_id',
-                select: 'title',
-                model: 'Position',
-            })
+                .populate({
+                    path: 'department_id',
+                    select: 'name',
+                    model: 'Department',
+                })
+                .populate({
+                    path: 'position_id',
+                    select: 'title',
+                    model: 'Position',
+                })
+                .populate({
+                    path: 'role_id',
+                    select: 'name',
+                    model: 'Role',
+                })
                 .skip(skip)
                 .limit(limit)
                 .lean();
-    
+
             res.status(200).json({
                 staffs,
                 totalPages,
+                limit,
                 currentPage: page,
                 totalStaffs
             });
@@ -82,6 +96,11 @@ class StaffController {
                     select: 'title',
                     model: 'Position',
                 })
+                .populate({
+                    path: 'role_id',
+                    select: 'name',
+                    model: 'Role',
+                })
                 .lean();
             if (!staff) {
                 return res
@@ -95,6 +114,61 @@ class StaffController {
             });
         }
     }
+
+    async findStaffByAccountId(accountId) {
+        try {
+            const staff = await Staff.findOne({ account_id: accountId })
+                .populate({
+                    path: 'department_id',
+                    select: 'name',
+                    model: 'Department',
+                })
+                .populate({
+                    path: 'position_id',
+                    select: 'title',
+                    model: 'Position',
+                })
+                .populate({
+                    path: 'role_id',
+                    select: 'name',
+                    model: 'Role',
+                })
+                .lean();
+
+            return staff;
+        } catch (error) {
+            console.log(error);
+            throw new Error(error.message);
+        }
+    }
+
+    async findStaffById(Id) {
+        try {
+            const staff = await Staff.findById(Id)
+                .populate({
+                    path: 'department_id',
+                    select: 'name',
+                    model: 'Department',
+                })
+                .populate({
+                    path: 'position_id',
+                    select: 'title',
+                    model: 'Position',
+                })
+                .populate({
+                    path: 'role_id',
+                    select: 'name',
+                    model: 'Role',
+                })
+                .lean();
+
+            return staff;
+        } catch (error) {
+            console.log(error);
+            throw new Error(error.message);
+        }
+    }
+
     //[GET] http://localhost:3000/api/v1/staffs/name/:name/
     async getStaffByName(req, res, next) {
         try {
@@ -164,7 +238,12 @@ class StaffController {
                 }
             }
 
-            // Thực hiện truy vấn lọc
+            // Phân trang
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 10; // Số lượng nhân viên trên mỗi trang
+            const skip = (page - 1) * limit;
+
+            // Thực hiện truy vấn lọc và phân trang
             const staffs = await Staff.find(filter)
                 .populate({
                     path: 'department_id',
@@ -176,15 +255,19 @@ class StaffController {
                     select: 'title',
                     model: 'Position',
                 })
+                .skip(skip)
+                .limit(limit)
                 .lean();
 
+            // Đếm tổng số nhân viên
+            const totalStaffs = await Staff.countDocuments(filter);
+
             if (!staffs || staffs.length === 0) {
-                return res
-                    .status(404)
-                    .json({ message: 'Không tìm thấy nhân viên nào.' });
+                return res.status(404).json({ message: 'Không tìm thấy nhân viên nào.' });
             }
 
-            res.status(200).json(staffs);
+            // Trả về kết quả với thông tin phân trang
+            res.status(200).json({ staffs, currentPage: page, totalStaffs, limit });
         } catch (error) {
             console.error(error);
             res.status(500).json({
@@ -192,6 +275,7 @@ class StaffController {
             });
         }
     }
+
 
     //[POST] http://localhost:3000/api/v1/staffs/create
 

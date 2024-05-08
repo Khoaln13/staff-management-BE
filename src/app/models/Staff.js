@@ -8,21 +8,38 @@ const employeeSchema = new Schema(
         },
         email: {
             type: String,
-            required: true,
+
         },
         dateOfBirth: {
             type: Date,
-            required: true,
+
         },
         department_id: {
             type: Schema.Types.ObjectId,
             ref: 'department',
-            required: true,
+
         },
         position_id: {
             type: Schema.Types.ObjectId,
             ref: 'position',
-            required: true,
+
+        },
+        account_id: {
+            type: Schema.Types.ObjectId,
+            ref: 'account',
+        },
+        address: {
+            type: String,
+        },
+        gender: {
+            type: String,
+        },
+        phone: {
+            type: String,
+        },
+        role_id: {
+            type: Schema.Types.ObjectId,
+            ref: 'role'
         },
     },
     { collection: 'staffs' },
