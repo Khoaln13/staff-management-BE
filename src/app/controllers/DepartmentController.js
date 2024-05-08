@@ -13,6 +13,19 @@ class DepartmentController {
         }
     }
 
+    async getAllDepartmentNames(req, res, next) {
+        try {
+            const departments = await Department.find({}, 'name'); // Chỉ lấy trường 'name' của các phòng ban
+            const departmentNames = departments.map(department => department.name); // Trích xuất tên từ danh sách các phòng ban
+            res.status(200).json(departmentNames);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({
+                message: 'Đã xảy ra lỗi khi lấy dữ liệu phòng ban.',
+            });
+        }
+    }
+
     async getDepartmentById(req, res, next) {
         try {
             const department = await Department.findById(req.params.id);

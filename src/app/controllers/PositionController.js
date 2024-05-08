@@ -13,6 +13,19 @@ class PositionController {
         }
     }
 
+    async getAllPositionTitle(req, res, next) {
+        try {
+            const positions = await Position.find({}, 'title');
+            const positionTitles = positions.map(position => position.title);
+            res.status(200).json(positionTitles);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({
+                message: 'Đã xảy ra lỗi khi lấy dữ liệu vị trí công việc.',
+            });
+        }
+    }
+
     async getPositionById(req, res, next) {
         try {
             const position = await Position.findById(req.params.id);
