@@ -110,27 +110,29 @@ const AuthController = {
         //Send error if token is not valid
         if (!refreshToken) return res.status(401).json("You're not authenticated");
         if (!refreshTokens.includes(refreshToken)) {
-            return res.status(403).json("Refresh token is not valid");
+            console.log("refreshToken: " + refreshToken);
+            console.log(refreshTokens);
+            return res.status(403).json("refreshtoken is not valid");
         }
         jwt.verify(refreshToken, process.env.JWT_REFRESH_KEY, (err, user) => {
             if (err) {
                 console.log("verify: " + err);
             }
-            refreshTokens = refreshTokens.filter((token) => token !== refreshToken);
 
             //create new access token, refresh token and send to user
             const newAccessToken = AuthController.generateAccessToken(user);
-            const newRefreshToken = AuthController.generateRefreshToken(user);
-            refreshTokens.push(newRefreshToken);
-            res.cookie("refreshToken", newRefreshToken, {
-                httpOnly: true,
-                secure: false,
-                path: "/",
-                sameSite: "strict",
-            });
+            // const newRefreshToken = AuthController.generateRefreshToken(user);
+            // refreshTokens.push(newRefreshToken);
+            // res.cookie("refreshToken", newRefreshToken, {
+            //     httpOnly: true,
+            //     secure: false,
+            //     path: "/",
+            //     sameSite: "strict",
+            // });
+
             res.status(200).json({
                 accessToken: newAccessToken,
-                refreshToken: newRefreshToken,
+                // refreshToken: newRefreshToken,
             });
         });
     },
@@ -138,9 +140,11 @@ const AuthController = {
 
     LogoutAccount: async (req, res) => {
         res.clearCookie("refreshToken");
-        refreshTokens.filter(token => token !== req.cookies.refreshToken)
-        res.status(200).json("Logged out");
-    }
+        refreshTokens = refreshTokens.filter(
+            (token) => token !== req.cookies.refreshToken
+        );
+        res.status(200).json("Logged out !");
+    },
 };
 
 module.exports = AuthController;
