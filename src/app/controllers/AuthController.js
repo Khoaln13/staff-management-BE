@@ -97,7 +97,7 @@ const AuthController = {
 
             })
 
-            res.status(200).json({ user: { _id: user._id, role: user.role_id.name }, accessToken });
+            res.status(200).json({ user, accessToken });
         } catch (error) {
             res.status(500).json({ message: error.message });
         }
@@ -109,11 +109,13 @@ const AuthController = {
 
         //Send error if token is not valid
         if (!refreshToken) return res.status(401).json("You're not authenticated");
-        if (!refreshTokens.includes(refreshToken)) {
-            console.log("refreshToken: " + refreshToken);
-            console.log(refreshTokens);
-            return res.status(403).json("refreshtoken is not valid");
-        }
+        // if (!refreshTokens.includes(refreshToken)) {
+
+        //     return res.status(403).json("refreshtoken is not valid");
+        // }
+        // console.log("refreshToken: " + refreshToken);
+        // console.log("refreshTokens: ")
+        // console.log(refreshTokens);
         jwt.verify(refreshToken, process.env.JWT_REFRESH_KEY, (err, user) => {
             if (err) {
                 console.log("verify: " + err);
