@@ -168,6 +168,46 @@ class StaffController {
             throw new Error(error.message);
         }
     }
+    //get staff with all information
+    //[GET] http://localhost:3000/api/v1/staffs/infor/:id/
+
+    async getStaffInformationById(req, res, next) {
+        try {
+            const staff = await Staff.findById(req.params.id)
+                .populate({
+                    path: 'department_id',
+                    select: 'name',
+                    model: 'Department',
+                })
+                .populate({
+                    path: 'position_id',
+                    select: 'title',
+                    model: 'Position',
+                })
+                .populate({
+                    path: 'role_id',
+                    select: 'name',
+                    model: 'Role',
+                })
+                .populate({
+                    path: 'account_id',
+                    select: 'username ',
+                    model: 'Account',
+                })
+                .lean();
+            if (!staff) {
+                return res
+                    .status(404)
+                    .json({ message: 'Không tìm thấy nhân viên nào.' });
+            }
+            res.status(200).json(staff);
+        } catch (error) {
+            res.status(500).json({
+                message: 'Đã xảy ra lỗi khi lấy dữ liệu nhân viên.',
+            });
+        }
+
+    }
 
     //[GET] http://localhost:3000/api/v1/staffs/name/:name/
     async getStaffByName(req, res, next) {
@@ -311,7 +351,7 @@ class StaffController {
         try {
             const staffId = req.params.id;
             const formData = req.body;
-
+            console.log(formData);
             // Kiểm tra xem nhân viên có tồn tại trong cơ sở dữ liệu không
             const existingStaff = await Staff.findById(staffId);
             if (!existingStaff) {
@@ -321,12 +361,11 @@ class StaffController {
             }
 
             // Cập nhật thông tin của nhân viên
-            await Staff.findByIdAndUpdate(staffId, formData);
+            const updatedStaff = await Staff.findByIdAndUpdate(staffId, formData.updatedStaffInfo, { new: true });
 
-            res.status(200).json({
-                message: 'Thông tin nhân viên đã được cập nhật thành công.',
-            });
+            res.status(200).json({ updatedStaff, });
         } catch (error) {
+            console.log(error.message);
             res.status(500).json({
                 message: 'Đã xảy ra lỗi khi cập nhật thông tin nhân viên.',
             });

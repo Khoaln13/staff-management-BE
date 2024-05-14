@@ -46,6 +46,7 @@ const middlewareController = {
     veryfyTokenAndUserOrAdminAuth: (req, res, next) => {
 
         middlewareController.verifyToken(req, res, () => {
+
             if (req.user && (req.user._id == req.params.id || req.user.role_id.name === 'admin')) {
                 next();
             } else {
