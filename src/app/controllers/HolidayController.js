@@ -30,15 +30,30 @@ class HolidayController {
         }
     }
 
-    async getHolidayByEmployeeId(req, res, next) {
+    async getHolidaysRequest(req, res, next) {
         try {
-            const holiday = await Holiday.find({ employee_id: req.params.id });
-            if (!holiday) {
+            const holidays = await Holiday.find({ status: 'Pending' });
+            if (!holidays) {
                 return res
                     .status(404)
                     .json({ message: 'Không tìm thấy ngày nghỉ.' });
             }
-            res.status(200).json(holiday);
+            res.status(200).json(holidays);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({
+                message: 'Đã xảy ra lỗi khi lấy thông tin ngày nghỉ.',
+            });
+        }
+    }
+
+
+    async getHolidaysByEmployeeId(req, res, next) {
+        try {
+
+            const holidays = await Holiday.find({ employee_id: req.params.id })
+                .lean();
+            res.status(200).json(holidays);
         } catch (error) {
             console.error(error);
             res.status(500).json({
@@ -49,17 +64,52 @@ class HolidayController {
 
     async createHoliday(req, res, next) {
         try {
-            const { start_date, end_date } = req.body;
-            const newHoliday = new Holiday({ start_date, end_date });
+            const { employee_id, startDate, endDate, description } = req.body;
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const diffTime = Math.abs(end - start);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+            // Kiểm tra số ngày nghỉ
+            const existingHolidays = await Holiday.find({ employee_id });
+            const totalDaysTaken = existingHolidays.reduce((total, holiday) => {
+                const start = new Date(holiday.startDate);
+                const end = new Date(holiday.endDate);
+                return total + Math.ceil(Math.abs(end - start) / (1000 * 60 * 60 * 24)) + 1;
+            }, 0);
+
+            if (totalDaysTaken + diffDays > Holiday.maxDays) {
+                return res.status(400).json({ message: `Exceeded maximum holiday days of ${Holiday.maxDays}` });
+            }
+
+            const newHoliday = new Holiday({
+                employee_id,
+                startDate,
+                endDate,
+                description,
+                status: 'Pending'
+            });
+
             await newHoliday.save();
             res.status(201).json(newHoliday);
         } catch (error) {
-            console.error(error);
-            res.status(500).json({
-                message: 'Đã xảy ra lỗi khi tạo mới ngày nghỉ.',
-            });
+            res.status(500).json({ message: 'Error creating holiday', error });
         }
     }
+    async updateHolidayStatus(req, res, next) {
+        try {
+            const { status } = req.body;
+            if (!['Approved', 'Rejected'].includes(status)) {
+                return res.status(400).json({ message: 'Invalid status' });
+            }
+
+            const holiday = await Holiday.findByIdAndUpdate(req.params.holidayId, { status }, { new: true });
+            res.status(200).json(holiday);
+        } catch (error) {
+            res.status(500).json({ message: 'Error updating holiday status', error });
+        }
+    }
+
 
     async updateHoliday(req, res, next) {
         try {
