@@ -2,6 +2,8 @@ const Staff = require('../models/Staff');
 const Department = require('../models/Department');
 const Position = require('../models/Position');
 const Role = require('../models/Role');
+const PositionHistory = require('../models/PositionHistory');
+const PositionHistoryController = require('./PositionHistoryController');
 class StaffController {
     // [GET] http://localhost:3000/api/v1/staffs/
     async getAllStaffs(req, res, next) {
@@ -371,6 +373,50 @@ class StaffController {
             });
         }
     }
+
+    async updateStaffPosition(req, res, next) {
+        try {
+            const staffId = req.params.id;
+            const formData = req.body.updatedStaffWork;
+            console.log(formData);
+
+            // Kiểm tra xem nhân viên có tồn tại trong cơ sở dữ liệu không
+            const existingStaff = await Staff.findById(staffId);
+            if (!existingStaff) {
+                return res
+                    .status(404)
+                    .json({ message: 'Không tìm thấy nhân viên.' });
+            }
+
+            // Tìm vị trí làm việc hiện tại
+            const currentPosition = await PositionHistoryController.findCurrentPosition(staffId);
+
+            // Cập nhật để kết thúc vị trí hiện tại
+            if (currentPosition) {
+                await PositionHistoryController.updatePositionHistoryEndDate(currentPosition._id);
+            }
+
+            // Thêm vị trí mới
+            const newPositionHistory = new PositionHistory({
+                employee_id: staffId,
+                department_id: formData.department_id,
+                position_id: formData.position_id,
+                start_date: new Date(),
+                end_date: null,
+            });
+            await newPositionHistory.save();
+            console.log("thay đổi vị trí thành công");
+            res.status(200).json({
+                newPositionHistory
+            });
+        } catch (error) {
+            console.log(error.message);
+            res.status(500).json({
+                message: 'Đã xảy ra lỗi khi cập nhật thông tin nhân viên.',
+            });
+        }
+    }
+
 
     //[DELETE] http://localhost:3000/api/v1/staffs/:id
     async deleteStaff(req, res, next) {

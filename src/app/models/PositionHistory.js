@@ -12,13 +12,18 @@ const positionHistorySchema = new mongoose.Schema(
             ref: 'Position',
             required: true,
         },
+        department_id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Department',
+            required: true,
+        },
         start_date: {
             type: Date,
             required: true,
         },
         end_date: {
             type: Date,
-            required: true,
+
         },
     },
     { collection: 'position_histories' },

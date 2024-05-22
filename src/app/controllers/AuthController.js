@@ -113,9 +113,7 @@ const AuthController = {
 
         //     return res.status(403).json("refreshtoken is not valid");
         // }
-        // console.log("refreshToken: " + refreshToken);
-        // console.log("refreshTokens: ")
-        // console.log(refreshTokens);
+
         jwt.verify(refreshToken, process.env.JWT_REFRESH_KEY, (err, user) => {
             if (err) {
                 console.log("verify: " + err);

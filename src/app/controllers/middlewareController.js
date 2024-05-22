@@ -38,12 +38,24 @@ const middlewareController = {
             if (req.user.role_id && req.user.role_id.name === 'admin') {
                 next();
             } else {
+
                 res.status(403).json("You're not admin");
             }
         });
     },
+    verifyTokenAndUser: (req, res, next) => {
 
-    veryfyTokenAndUserOrAdminAuth: (req, res, next) => {
+        middlewareController.verifyToken(req, res, () => {
+            console.log('user id: ' + req.user._id + 'params id: ' + req.params.id);
+            if (req.user && (req.user._id == req.params.id)) {
+                next();
+            } else {
+                res.status(403).json("You're not allowed to use this function");
+            }
+        });
+    },
+
+    verifyTokenAndUserOrAdminAuth: (req, res, next) => {
 
         middlewareController.verifyToken(req, res, () => {
 

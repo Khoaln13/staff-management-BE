@@ -4,16 +4,16 @@ class PositionHistoryController {
     async getAllPositionHistories(req, res, next) {
         try {
             const positionHistories = await PositionHistory.find({})
-            .populate({
-                path: 'employee_id',
-                select: 'name',
-                model: 'Staff',
-            })
-            .populate({
-                path: 'position_id',
-                select: 'title',
-                model: 'Position',
-            }).lean();
+                .populate({
+                    path: 'employee_id',
+                    select: 'name',
+                    model: 'Staff',
+                })
+                .populate({
+                    path: 'position_id',
+                    select: 'title',
+                    model: 'Position',
+                }).lean();
             res.status(200).json(positionHistories);
         } catch (error) {
             console.error(error);
@@ -33,11 +33,11 @@ class PositionHistoryController {
                 select: 'name',
                 model: 'Staff',
             })
-            .populate({
-                path: 'position_id',
-                select: 'title',
-                model: 'Position',
-            }).lean();
+                .populate({
+                    path: 'position_id',
+                    select: 'title',
+                    model: 'Position',
+                }).lean();
             if (!positionHistory) {
                 return res
                     .status(404)
@@ -59,16 +59,23 @@ class PositionHistoryController {
         try {
             const positionHistory = await PositionHistory.find({
                 employee_id: req.params.id,
-            }).populate({
-                path: 'employee_id',
-                select: 'name',
-                model: 'Staff',
             })
-            .populate({
-                path: 'position_id',
-                select: 'title',
-                model: 'Position',
-            }).lean();
+                .populate({
+                    path: 'employee_id',
+                    select: 'name',
+                    model: 'Staff',
+                })
+                .populate({
+                    path: 'position_id',
+                    select: 'title',
+                    model: 'Position',
+                })
+                .populate({
+                    path: 'department_id',
+                    select: 'name',
+                    model: 'Department',
+                })
+                .lean();
             if (!positionHistory) {
                 return res
                     .status(404)
@@ -107,6 +114,19 @@ class PositionHistoryController {
             });
         }
     }
+    async findCurrentPosition(employee_id) {
+        try {
+            const currentPosition = await PositionHistory.findOne({
+                employee_id: employee_id,
+                end_date: null
+            });
+
+            return currentPosition;
+        } catch (error) {
+            console.error('Đã xảy ra lỗi khi tìm vị trí hiện tại.', error);
+            throw new Error('Đã xảy ra lỗi khi tìm vị trí hiện tại.');
+        }
+    }
 
     async createPositionHistory(req, res, next) {
         try {
@@ -118,6 +138,7 @@ class PositionHistoryController {
                 end_date,
             });
             await newPositionHistory.save();
+            console.log("Tạo mới lịch sử cv thành công")
             res.status(201).json(newPositionHistory);
         } catch (error) {
             console.error(error);
@@ -127,23 +148,19 @@ class PositionHistoryController {
         }
     }
 
-    async updatePositionHistory(req, res, next) {
+    async updatePositionHistoryEndDate(positionHistoryId) {
         try {
-            const positionHistoryId = req.params.id;
-            const { employee_id, position_id, start_date, end_date } = req.body;
-            const updatedPositionHistory =
-                await PositionHistory.findByIdAndUpdate(
-                    positionHistoryId,
-                    { employee_id, position_id, start_date, end_date },
-                    { new: true },
-                );
-            res.status(200).json(updatedPositionHistory);
+            const today = new Date();
+            const updatedPositionHistory = await PositionHistory.findByIdAndUpdate(
+                positionHistoryId,
+                { end_date: today },
+                { new: true },
+            );
+            console.log(' cập nhật endate lịch sử vị trí công việc thành công.');
+            return updatedPositionHistory;
         } catch (error) {
-            console.error(error);
-            res.status(500).json({
-                message:
-                    'Đã xảy ra lỗi khi cập nhật thông tin lịch sử vị trí công việc.',
-            });
+            console.log('Đã xảy ra lỗi khi cập nhật endate lịch sử vị trí công việc.', error);
+            throw new Error('Đã xảy ra lỗi khi cập nhật thông tin lịch sử vị trí công việc.');
         }
     }
 

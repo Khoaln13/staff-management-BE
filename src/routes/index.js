@@ -5,7 +5,7 @@ const positionHistoryRouter = require('./positionHistoryRoute');
 const holidayRouter = require('./holidayRoute');
 const salaryRouter = require('./salaryRoute');
 const authRouter = require('./authRoute');
-
+const timesheetRouter = require('./timesheetRoute');
 
 function route(app) {
     app.use('/api/v1/staffs/', staffsRouter);
@@ -15,6 +15,8 @@ function route(app) {
     app.use('/api/v1/holidays/', holidayRouter);
     app.use('/api/v1/salaries/', salaryRouter);
     app.use('/api/v1/auth/', authRouter);
+    app.use('/api/v1/timesheets/', timesheetRouter);
+    app.use('/api/v1/holidays/', holidayRouter);
 
 }
 
