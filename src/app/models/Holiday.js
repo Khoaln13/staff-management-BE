@@ -36,7 +36,7 @@ const holidaySchema = new mongoose.Schema({
         collection: 'holidays'
     });
 
-holidaySchema.statics.maxDays = 20;  // Giới hạn số ngày nghỉ phép trong một năm
+holidaySchema.statics.maxDays = 20;
 
 
 const Holiday = mongoose.model('Holiday', holidaySchema);
