@@ -39,7 +39,8 @@ const employeeSchema = new Schema(
         },
         role_id: {
             type: Schema.Types.ObjectId,
-            ref: 'role'
+            ref: 'role',
+            default: '66374a5a02b38142748dc10a'
         },
     },
     { collection: 'staffs' },

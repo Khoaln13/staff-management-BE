@@ -4,6 +4,9 @@ const Position = require('../models/Position');
 const Role = require('../models/Role');
 const PositionHistory = require('../models/PositionHistory');
 const PositionHistoryController = require('./PositionHistoryController');
+const Account = require('../models/Account');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 class StaffController {
     // [GET] http://localhost:3000/api/v1/staffs/
     async getAllStaffs(req, res, next) {
@@ -322,28 +325,64 @@ class StaffController {
     //[POST] http://localhost:3000/api/v1/staffs/create
 
     async createNewStaff(req, res, next) {
+        console.log(req.body);
+        const newAccount = req.body.newAccount;
+        const newStaff = req.body.newStaff;
+        const newPositionHistory = req.body.newPositionHistory
         try {
-            const formData = req.body;
-
-            // Kiểm tra xem có nhân viên nào có cùng thông tin với thông tin mới không
-            const existingStaff = await Staff.findOne(formData);
-            if (existingStaff) {
-                // Nếu đã tồn tại, gửi lại phản hồi 409 (Conflict)
-                return res
-                    .status(409)
-                    .json({ message: 'Nhân viên đã tồn tại trong hệ thống.' });
+            // Kiểm tra xem tài khoản đã tồn tại chưa
+            const existingAccount = await Account.findOne({ username: newAccount.username });
+            if (existingAccount) {
+                return res.status(409).json({ message: 'Tài khoản đã tồn tại.' });
             }
 
-            // Nếu không có nhân viên nào trùng khớp, tiếp tục tạo mới nhân viên
-            const staff = new Staff(formData);
-            await staff.save();
+            // Kiểm tra xem nhân viên đã tồn tại chưa (dựa trên email và số điện thoại)
+            const existingStaff = await Staff.findOne({
+                name: newStaff.name,
+                email: newStaff.email,
+                dateOfBirth: newStaff.dateOfBirth,
+                address: newStaff.address,
+                gender: newStaff.gender,
+                phone: newStaff.phone,
+            });
 
+            if (existingStaff) {
+                return res.status(409).json({ message: 'Nhân viên đã tồn tại trong hệ thống.' });
+            }
+
+            // Nếu tài khoản và nhân viên đều chưa tồn tại, tiếp tục tạo mới tài khoản
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(newAccount.password, salt);
+
+            const newAccountData = new Account({
+                username: newAccount.username,
+                password: hashedPassword,
+            });
+
+            const account = await newAccountData.save();
+
+            // Tạo nhân viên mới và liên kết với tài khoản vừa tạo
+            const staff = new Staff({
+                ...newStaff,
+                account_id: account._id, // Liên kết tài khoản với nhân viên
+            });
+
+            await staff.save();
+            const positionHistory = new PositionHistory({
+                ...newPositionHistory,
+                employee_id: staff._id,
+            })
+            positionHistory.save();
             res.status(201).json({
                 message: 'Nhân viên đã được tạo mới thành công.',
+                account,
+                staff,
+                positionHistory
             });
         } catch (error) {
+            console.log('error: ' + error.message);
             res.status(500).json({
-                message: 'Đã xảy ra lỗi khi tạo mới nhân viên.',
+                message: 'Đã xảy ra lỗi khi tạo mới tài khoản hoặc nhân viên.',
             });
         }
     }
