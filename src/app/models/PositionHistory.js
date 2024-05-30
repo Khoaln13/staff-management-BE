@@ -20,10 +20,11 @@ const positionHistorySchema = new mongoose.Schema(
         start_date: {
             type: Date,
             required: true,
+            default: Date.now
         },
         end_date: {
             type: Date,
-
+            default: null
         },
     },
     { collection: 'position_histories' },

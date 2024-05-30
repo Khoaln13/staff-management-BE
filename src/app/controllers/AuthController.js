@@ -7,19 +7,21 @@ let refreshTokens = [];
 
 const AuthController = {
     async RegisterAccount(req, res, next) {
+        const newAccountInfo = req.body.newAccount
         try {
             const salt = await bcrypt.genSalt(10);
-            const hashed = await bcrypt.hash(req.body.password, salt);
+            const hashed = await bcrypt.hash(newAccountInfo.password, salt);
 
-            // Create a new user
+
             const newAccount = new Account({
-                username: req.body.username,
+                username: newAccountInfo.username,
                 password: hashed,
             });
 
             const account = await newAccount.save();
             res.status(200).json(account);
         } catch (error) {
+            console.log('error: ' + error.message);
             res.status(500).json({ message: error.message });
         }
     },
