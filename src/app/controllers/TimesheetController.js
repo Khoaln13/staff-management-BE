@@ -35,6 +35,21 @@ class TimesheetController {
                 { description: req.body.editedTimesheet?.description, updatedAt: Date.now() },
                 { new: true }
             );
+
+            res.status(200).json(timesheet);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: 'Đã xảy ra lỗi khi cập nhật thông tin timesheet.' });
+        }
+    }
+    async updateTimesheetcheckout(req, res, next) {
+        try {
+            const timesheetId = req.params.id
+            const timesheet = await Timesheet.findByIdAndUpdate(
+                timesheetId,
+                { endTime: req.body.endTime, updatedAt: Date.now() },
+                { new: true }
+            );
             console.log(timesheet);
             res.status(200).json(timesheet);
         } catch (error) {

@@ -7,10 +7,22 @@ const PositionHistoryController = require('./PositionHistoryController');
 const Account = require('../models/Account');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const BasicSalary = require('../models/BasicSalary');
+const moment = require('moment');
+const Timesheet = require('../models/Timesheet');
+const Payroll = require('../models/Payroll'); // Import Payroll model
+const Bonus = require('../models/Bonus'); // Import Bonus model
+const Deduction = require('../models/Deduction'); // Import Deduction model
+const Allowance = require('../models/Allowance'); // Import Allowance model
+
 class StaffController {
     // [GET] http://localhost:3000/api/v1/staffs/
     async getAllStaffs(req, res, next) {
         try {
+            const sevenDaysAgo = moment().subtract(7, 'days').toDate();
+            const currentMonth = moment().month() + 1; // Tháng hiện tại (1-12)
+            const currentYear = moment().year(); // Năm hiện tại
+
             const staffs = await Staff.find({})
                 .populate({
                     path: 'department_id',
@@ -35,7 +47,51 @@ class StaffController {
                     .json({ message: 'Không tìm thấy nhân viên nào.' });
             }
 
-            res.status(200).json(staffs);
+            // Lấy timesheets trong 7 ngày gần đây cho từng nhân viên
+            for (const staff of staffs) {
+                const timesheets = await Timesheet.find({
+                    employee_id: staff._id,
+                    date: { $gte: sevenDaysAgo }
+                }).sort({ date: -1 }).lean();
+                staff.timesheets = timesheets;
+
+                // Lấy lịch sử lương tháng hiện tại
+                const payroll = await Payroll.findOne({
+                    employee_id: staff._id,
+                    month: currentMonth,
+                    year: currentYear
+                }).lean();
+                staff.payroll = payroll;
+
+                // Lấy lịch sử thưởng tháng hiện tại
+                const bonuses = await Bonus.find({
+                    employee_id: staff._id,
+                    date: {
+                        $gte: moment().startOf('month').toDate(),
+                        $lte: moment().endOf('month').toDate()
+                    }
+                }).lean();
+                staff.bonuses = bonuses;
+
+                // Lấy lịch sử khấu trừ tháng hiện tại
+                const deductions = await Deduction.find({
+                    employee_id: staff._id,
+                    date: {
+                        $gte: moment().startOf('month').toDate(),
+                        $lte: moment().endOf('month').toDate()
+                    }
+                }).lean();
+                staff.deductions = deductions;
+
+                // Lấy phụ cấp hiện tại
+                const allowances = await Allowance.find({
+                    employee_id: staff._id,
+
+                }).lean();
+                staff.allowances = allowances;
+            }
+
+            res.status(200).json({ staffs });
         } catch (error) {
             console.error(error);
             res.status(500).json({
@@ -329,6 +385,7 @@ class StaffController {
         const newAccount = req.body.newAccount;
         const newStaff = req.body.newStaff;
         const newPositionHistory = req.body.newPositionHistory
+        const newBasicSalary = req.body.newBasicSalary
         try {
             // Kiểm tra xem tài khoản đã tồn tại chưa
             const existingAccount = await Account.findOne({ username: newAccount.username });
@@ -373,6 +430,11 @@ class StaffController {
                 employee_id: staff._id,
             })
             positionHistory.save();
+            const basicSalary = new BasicSalary({
+                amount: newBasicSalary,
+                employee_id: staff._id,
+            })
+            basicSalary.save();
             res.status(201).json({
                 message: 'Nhân viên đã được tạo mới thành công.',
                 account,

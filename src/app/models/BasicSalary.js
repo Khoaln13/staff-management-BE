@@ -3,19 +3,15 @@ const mongoose = require('mongoose');
 const salarySchema = new mongoose.Schema({
   employee_id: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Employee',
-    required: true
-  },
-  salary_type: {
-    type: String,
+    ref: 'Staff',
     required: true
   },
   amount: {
     type: Number,
     required: true
   }
-}, { collection: 'salaries' });
+}, { collection: 'basic_salaries' });
 
-const Salary = mongoose.model('Salary', salarySchema);
+const BasicSalary = mongoose.model('BasicSalary', salarySchema);
 
-module.exports = Salary;
+module.exports = BasicSalary;

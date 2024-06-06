@@ -11,7 +11,7 @@ router.put('/work/:id', middlewareController.verifyTokenAndUserOrAdminAuth, staf
 router.delete('/:id', middlewareController.verifyTokenAndAdminAuth, staffsController.deleteStaff);
 router.post('/create', middlewareController.verifyTokenAndAdminAuth, staffsController.createNewStaff);
 router.get('/info/:id', middlewareController.verifyTokenAndUserOrAdminAuth, staffsController.getStaffInformationById);
-router.get('/', middlewareController.verifyTokenAndAdminAuth, staffsController.getAllStaffsPagination);
+router.get('/paginate', middlewareController.verifyTokenAndAdminAuth, staffsController.getAllStaffsPagination);
 router.get('/', middlewareController.verifyTokenAndAdminAuth, staffsController.getAllStaffs);
 
 module.exports = router;

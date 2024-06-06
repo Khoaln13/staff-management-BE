@@ -5,7 +5,7 @@ const timesheetController = require('../app/controllers/TimesheetController');
 
 //:id is the id of the employee
 router.get('/staff/:id', middlewareController.verifyTokenAndUserOrAdminAuth, timesheetController.getTimesheets);
-
+router.put('/checkout/:id', middlewareController.verifyTokenAndUserOrAdminAuth, timesheetController.updateTimesheetcheckout);
 //:id is the id of timesheet
 router.put('/:id', middlewareController.verifyTokenAndUserOrAdminAuth, timesheetController.updateTimesheet);
 
