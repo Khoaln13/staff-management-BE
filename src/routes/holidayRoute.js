@@ -6,9 +6,6 @@ const holidayController = require('../app/controllers/HolidayController');
 
 
 
-
-
-
 // Cập nhật trạng thái nghỉ phép
 router.put('/:holidayId/status', middlewareController.verifyTokenAndUserOrAdminAuth, holidayController.updateHolidayStatus);
 // Cập nhật thông tin request nghỉ phép

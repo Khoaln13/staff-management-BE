@@ -1,10 +1,10 @@
-const Salary = require('../models/Salary');
+const BasicSalary = require('../models/BasicSalary');
 
-class SalaryController {
-    async getAllSalaries(req, res, next) {
+class BasicSalaryController {
+    async getAllBasicSalaries(req, res, next) {
         try {
-            const salaries = await Salary.find({});
-            res.status(200).json(salaries);
+            const basicSalaries = await BasicSalary.find({});
+            res.status(200).json(basicSalaries);
         } catch (error) {
             console.error(error);
             res.status(500).json({
@@ -13,15 +13,15 @@ class SalaryController {
         }
     }
 
-    async getSalaryById(req, res, next) {
+    async getBasicSalaryById(req, res, next) {
         try {
-            const salary = await Salary.findById(req.params.id);
-            if (!salary) {
+            const basicSalary = await BasicSalary.findById(req.params.id);
+            if (!basicSalary) {
                 return res
                     .status(404)
                     .json({ message: 'Không tìm thấy thông tin lương.' });
             }
-            res.status(200).json(salary);
+            res.status(200).json(basicSalary);
         } catch (error) {
             console.error(error);
             res.status(500).json({
@@ -30,15 +30,15 @@ class SalaryController {
         }
     }
 
-    async getSalaryByEmployeeId(req, res, next) {
+    async getBasicSalaryByEmployeeId(req, res, next) {
         try {
-            const salary = await Salary.find({ employee_id: req.params.id });
-            if (!salary) {
+            const basicSalary = await BasicSalaries.find({ employee_id: req.params.id });
+            if (!basicSalary) {
                 return res
                     .status(404)
                     .json({ message: 'Không tìm thấy thông tin lương.' });
             }
-            res.status(200).json(salary);
+            res.status(200).json(basicSalary);
         } catch (error) {
             console.error(error);
             res.status(500).json({
@@ -47,12 +47,12 @@ class SalaryController {
         }
     }
 
-    async createSalary(req, res, next) {
+    async createBasicSalary(req, res, next) {
         try {
-            const { employee_id, salary_type, amount } = req.body;
-            const newSalary = new Salary({ employee_id, salary_type, amount });
+            const { employee_id, amount } = req.body;
+            const newBasicSalary = new Salary({ employee_id, amount });
             await newSalary.save();
-            res.status(201).json(newSalary);
+            res.status(201).json(newBasicSalary);
         } catch (error) {
             console.error(error);
             res.status(500).json({
@@ -61,16 +61,16 @@ class SalaryController {
         }
     }
 
-    async updateSalary(req, res, next) {
+    async updateBasicSalary(req, res, next) {
         try {
-            const salaryId = req.params.id;
-            const { employee_id, salary_type, amount } = req.body;
-            const updatedSalary = await Salary.findByIdAndUpdate(
-                salaryId,
-                { employee_id, salary_type, amount },
+            const basicSalaryId = req.params.id;
+            const { employee_id, amount } = req.body;
+            const updatedBasicSalary = await BasicSalary.findByIdAndUpdate(
+                basicSalaryId,
+                { employee_id, amount },
                 { new: true },
             );
-            res.status(200).json(updatedSalary);
+            res.status(200).json(updatedBasicSalary);
         } catch (error) {
             console.error(error);
             res.status(500).json({
@@ -79,10 +79,10 @@ class SalaryController {
         }
     }
 
-    async deleteSalary(req, res, next) {
+    async deleteBasicSalary(req, res, next) {
         try {
-            const salaryId = req.params.id;
-            await Salary.findByIdAndDelete(salaryId);
+            const basicSalaryId = req.params.id;
+            await BasicSalary.findByIdAndDelete(basicSalaryId);
             res.status(200).json({
                 message: 'Thông tin lương đã được xóa thành công.',
             });
@@ -95,4 +95,4 @@ class SalaryController {
     }
 }
 
-module.exports = new SalaryController();
+module.exports = new BasicSalaryController();
